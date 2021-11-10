@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<head><title>Sensor Data</title></head>
+{% extends 'base.html' %}
+
+{% block content %}
+
+      <!-- Begin Page Content -->
+      <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <h1 class="h3 mb-2 text-gray-800">Current Sensor Data</h1>
+      
+        <!-- Content Row -->
+        <div class="row">
+          <!-- Donut Chart -->
+          <div class="col-xl-6 col-lg-7">
+              <div class="card shadow mb-4">
+                  <!-- Card Header - Dropdown -->
+                  <div class="card-header py-3">
+                      <h6 class="m-0 font-weight-bold text-primary">Sensor 1</h6>
+                  </div>
+                  <!-- Card Body -->
+                  <div class="card-body">
+                      <div class="chart-pie pt-4">
+                          <canvas id="sensor1chart" onload="updatet()"></canvas>
+                      </div>
+                      <hr>
+                  </div>
+              </div>
+          </div>
+          <div class="col-xl-6 col-lg-7">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sensor 2</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4">
+                        <canvas id="sensor2chart"></canvas>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+        </div>
+      </div>
+
+          <div class="row">
+            <!-- Donut Chart -->
+            <div class="col-xl-6 col-lg-7">
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Sensor 3</h6>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="chart-pie pt-4">
+                            <canvas id="sensor3chart"></canvas>
+                        </div>
+                        <hr>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-7">
+              <div class="card shadow mb-4">
+                  <!-- Card Header - Dropdown -->
+                  <div class="card-header py-3">
+                      <h6 class="m-0 font-weight-bold text-primary">Sensor 4</h6>
+                  </div>
+                  <!-- Card Body -->
+                  <div class="card-body">
+                      <div class="chart-pie pt-4">
+                          <canvas id="sensor4chart"></canvas>
+                      </div>
+                      <hr>
+                  </div>
+              </div>
+          </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+
+<script>
+
+function process(data){
+    if (data.length>15){
+        const n = data.length
+        data=data.slice(n-15,n)
+    }
+    return data
+}
+
+var sensor1={{sensor1}}
+var sensor2={{sensor2}}
+var sensor3={{sensor3}}
+var sensor4={{sensor4}}
+// var time={{time}}
+
+sensor1=process(sensor1)
+sensor2=process(sensor2)
+sensor3=process(sensor3)
+sensor4=process(sensor4)
+// time=process(time)
+// console.log(time)
+
+var myChart1 = new Chart(document.getElementById("sensor1chart"), {
+  type: 'line',
+  data: {
+    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    datasets: [{
+        data: sensor1,
+        label: "Sensor 1",
+        borderColor: "#c45850",
+        fill: true
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'Sensor 1 Data'
+    }
+  }
+});
+var myChart2 = new Chart(document.getElementById("sensor2chart"), {
+  type: 'line',
+  data: {
+    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    datasets: [{
+        data: sensor2,
+        label: "Sensor 2",
+        borderColor: "#c45850",
+        fill: true
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'Sensor 2 Data'
+    }
+  }
+});
+var myChart3 = new Chart(document.getElementById("sensor3chart"), {
+  type: 'line',
+  data: {
+    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    datasets: [{
+        data: sensor3,
+        label: "Sensor 3",
+        borderColor: "#c45850",
+        fill: true
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'Sensor 3 Data'
+    }
+  }
+});
+var myChart4 = new Chart(document.getElementById("sensor4chart"), {
+  type: 'line',
+  data: {
+    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    datasets: [{
+        data: sensor4,
+        label: "Sensor 4",
+        borderColor: "#c45850",
+        fill: true
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'Sensor 4 Data'
+    }
+  }
+});
+
+setInterval(function updatet(){
+     $.ajax({
+         url:"{% url 'updatechart' %}",
+         type: "GET",
+         success: function(test){
+             console.log("hello")
+             var sensor1=process(test['sensor1'])
+             var sensor2=process(test['sensor2'])
+             var sensor3=process(test['sensor3'])
+             var sensor4=process(test['sensor4'])
+             var time=process(test['time'])
+             
+             myChart1.data.datasets[0].data = sensor1;
+             myChart1.update();
+             myChart2.data.datasets[0].data = sensor2;
+             myChart2.update();
+             myChart3.data.datasets[0].data = sensor3;
+             myChart3.update();
+             myChart4.data.datasets[0].data = sensor4;
+             myChart4.update();
+         },
+     });
+}, 5000);
+</script>
+
+<!-- End of Main Content -->
+<!-- <body onload="updatet()">
+</body> -->
+
+{% endblock %}

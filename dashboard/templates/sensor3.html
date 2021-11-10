@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<head><title>Sensor 3 Data</title></head>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Sensor 3 Data</h1>
+    <div class="row">
+      <div class="col-xl-6 lg-6 sm-6">
+        <div class="card mb-1">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sensor 3</h6>
+            </div>
+              <div class="card-body">
+                  <div class="chart-pie">
+                      <canvas id="sensor3chart" onload="updatet()"></canvas>
+                  </div>
+                  <hr>
+              </div>
+          </div>
+        </div>
+          <div class="col-xl-6 ">
+            <div class="card mb-1">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">RESULTS</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie">
+                        <canvas id="sensor3resultchart" onload="updatet()"></canvas>
+                    </div>
+                    <hr>
+                </div>
+            </div> 
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-6 lg-6 sm-6">
+          <div class="card mb-1">
+              <div class="card-header py-3">
+                  <h6 class="m-0 font-weight-bold text-primary">Sensor 3 Errors</h6>
+              </div>
+                <div class="card-body">
+                    <div class="chart-pie">
+                        <canvas id="sensor3errorchart" onload="updatet()"></canvas>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+          </div>
+        </div>
+ </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+
+<script>
+
+function process(data){
+    if (data.length>15){
+        const n = data.length
+        data=data.slice(n-15,n)
+    }
+    return data
+}
+
+var sensor3={{sensor3}}
+var result={{result}}
+var time={{time | safe}}
+var error={{to_notify}}
+sensor3=process(sensor3)
+result=process(result)
+time=process(time)
+error=process(error)
+var myChart1 = new Chart(document.getElementById("sensor3chart"), {
+  type: 'line',
+  data: {
+    labels:time,
+    datasets: [{
+        data: sensor3,
+        label: "Sensor 3",
+        borderColor: "#c45850",
+        fill: true,
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'Sensor 3 Data'
+    }
+  }
+});
+var myChart2 = new Chart(document.getElementById("sensor3resultchart"), {
+  type: 'line',
+  data: {
+    labels: time,
+    datasets: [{
+        data: result,
+        label: "Sensor 3",
+        borderColor: "#c45850",
+        fill: true,
+        tension: 0
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'RESULT'
+    }
+  }
+});
+var myChart3 = new Chart(document.getElementById("sensor3errorchart"), {
+  type: 'line',
+  data: {
+    labels: time,
+    datasets: [{
+        data: error,
+        label: "Sensor 3",
+        borderColor: "#c45850",
+        fill: true,
+        tension: 0
+      }],
+  },
+  options: {
+    scales: {
+        y: {
+            max: 100,
+            min: 0,
+            ticks: {
+                stepSize: 20
+            }
+        }
+    },
+    title: {
+      display: true,
+      text: 'RESULT'
+    }
+  }
+});
+setInterval(function updatet(){
+     $.ajax({
+         url:"{% url 'updatechart' %}",
+         type: "GET",
+         success: function(test){
+             console.log("hello")
+             var sensor3=process(test['sensor3'])
+             var time=process(test['time'])
+             var result=process(test['result'])
+             var error=process(test["sensor3_errors"])
+             myChart1.data.datasets[0].data = sensor3;
+             myChart1.update();
+             myChart2.data.datasets[0].data = result;
+             myChart2.update();
+             myChart3.data.datasets[0].data = error;
+             myChart3.update();
+
+         },
+     });
+}, 5000);
+</script>
+
+
+{% endblock %}
