@@ -10837,6 +10837,21 @@ a:focus {
   width: 100%;
 }
 
+.chartwrapper {
+  position: relative;
+}
+
+.chartwrapper > canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.chartareawrapper {
+  overflow-x: scroll;
+}
+
 @media (min-width: 768px) {
   .chart-area {
     height: 20rem;

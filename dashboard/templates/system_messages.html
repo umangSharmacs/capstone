@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<head>
+    <title>System Messages</title>
+</head>
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="card mb-1">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Errors</h6>
+        </div>
+          <div class="card-body">
+            <table class="table">
+                <tr>
+                    <th>Time</th>
+                    <th>Sensors</th>
+                </tr>
+                {% for item in errors_list %}
+                    <tr>
+                    {% for i in item %}
+                        <th>{{i | safe}}</th>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+
+            </table>
+        </div>
+    </div>    
+</div>
+
+
+
+{% endblock %}

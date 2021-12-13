@@ -5,7 +5,64 @@
 {% block content %}
 <div class="container-fluid">
     <h2>USERNAME: {{username}} </h2>
+    <h2>EMAIL: {{email}}</h2>
+    <br>
+    <br>
+    <hr>
+    <br>
+    <br>
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Change Password</div>
+                        </div>
+                        <div class="col-auto">
+                            <a class="btn btn-primary btn-circle btn-lg" href="{% url 'changepassword' %}">
+                                <i class="fa fa-key" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Forgot Password</div>
+                        </div>
+                        <div class="col-auto">
+                            <a class="btn btn-primary btn-circle btn-lg" href="{% url 'tpassword_reset' %}">
+                                <i class="fa fa-lock"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Share my Data</div>
+                        </div>
+                        <div class="col-auto">
+                            <a class="btn btn-primary btn-circle btn-lg" href="{% url 'sharedata' %}">
+                                <i class="fas fa-database"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 
 {% endblock %}

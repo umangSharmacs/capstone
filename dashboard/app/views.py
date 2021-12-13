@@ -1,6 +1,7 @@
-# username: surynash
+# username: suryansh
 # password: umangprakharsuryansh
 
+from logging import error
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
@@ -15,6 +16,10 @@ from .forms import CustomUserForm
 from .forms import LoginForm
 import datetime
 import json
+
+from django.conf import settings
+from django.core.mail import send_mail
+
 # # Create your views here.
 
 # INTEGRATING FIREBASE WITH DJANGO------------------------------------------------- 
@@ -53,24 +58,6 @@ authe = firebase.auth()
 
 database=firebase.database()
 
-def preprocess_old(data: str) -> list:
-  '''
-  OLD FUNCTION FOR PREVIOUS FIREBASE. WHEN DATA WAS BEING UPLOADED BY ARDUINO AND THERE WERE NO SPACES ETC.
-  '''
-  processed_list=[]
-  digits=[]
-  for index,i in enumerate(data):
-    if i=='\r' or i=='\n':
-      if digits!=[]:
-        processed_list.append(float(''.join(digits)))
-        digits=[]
-        continue
-    else:
-      digits.append(i)
-  if digits!=[]:
-    processed_list.append(float(''.join(digits)))
-  return processed_list
-
 def get_data(request):
   '''
   HELPER FUNCTION TO GET ALL THE DATA FROM FIREBASE
@@ -98,38 +85,70 @@ def get_data(request):
   return sensor1,sensor2,sensor3,sensor4,time, time_json
 
 def sensordata(request):
-  # numbers=[]
-  # a=database.child(f'{request.user.username}').get()
-  # try:
-  #   for i in a.each():
-      
-  #     if i.val():
-  #       numbers.append(preprocess(i.val()))
-  #   numbers=sum(numbers,[])
-    
-  #   return render(request,'sensordata.html' ,{"data":numbers})
-  # except:
-  #   return render(request,'sensordata.html' ,{"data":0})
+  sensor1,sensor2,sensor3,sensor4,_,time,_=get_errors(request)
+  current_sensor1=round(sensor1[-1],2)
+  current_sensor2=round(sensor2[-1], 2)
+  current_sensor3=round(sensor3[-1],2)
+  current_sensor4=round(sensor4[-1],2)
+  return render(request,'sensordata.html', {"sensor1": sensor1, "sensor2": sensor2, "sensor3": sensor3, "sensor4": sensor4, "time":time, "current_sensor1": current_sensor1, "current_sensor2": current_sensor2, "current_sensor3": current_sensor3, "current_sensor4": current_sensor4})
 
-  '''
-  CODE ABOVE IS ALSO OLD CODE. USED FOR WHEN ARDUINO WAS USED.
+def get_errors(request):
+  sensor1,sensor2,sensor3,sensor4,time,time_json=get_data(request)
+  
+  errors_list=[]
+  for index,_ in enumerate(sensor1):
+    t1=[]
+    t1.append(str(time[index]))
+    t=[]
+    if sensor1[index]=="error":
+      t.append("Temperature")
+    if sensor2[index]=="error":
+      t.append("pH")
+    if sensor3[index]=="error":
+      t.append("Turbidity")
+    if sensor4[index]=="error":
+      t.append("TDS")
+    if len(t)==0:
+      t.append("No Errors")
+    t1.append(t)
+    errors_list.append(t1)
+  s=zip(sensor1, sensor2, sensor3, sensor4, time)
+  s= list(filter(lambda c: c[0]!="error" and c[1]!="error" and c[2]!="error" and c[3]!="error", s))
+  sensor1_data=[i[0] for i in s]
+  sensor2_data=[i[1] for i in s]
+  sensor3_data=[i[2] for i in s]
+  sensor4_data=[i[3] for i in s]
+  time=[i[4] for i in s]
+  time_json=json.dumps(time)
+  return sensor1_data, sensor2_data, sensor3_data, sensor4_data, time, time_json, errors_list
 
-  CODE BELOW IS USED FOR THE ARTIFICIAL CODE.
-  '''
-  sensor1,sensor2,sensor3,sensor4,_,time=get_data(request)
-  return render(request,'sensordata.html', {"sensor1": sensor1, "sensor2": sensor2, "sensor3": sensor3, "sensor4": sensor4, "time":time})
 
-def get_indices(zipped_list):
+def system_messages(request):
   '''
-  GEt errors where sensors weren't able to send data. Implemented in artificial data using negative numbers.
+  Get errors where sensors weren't able to send data. Implemented in data using "error".
   '''
-  to_notify=[]
-  for i in zipped_list:
-    if i[0]<=0:
-      to_notify.append(1)
+  _,_,_,_,_,_,errors_list=get_errors(request)
+  if errors_list!=[]:
+    alert_user(request)
+  
+  return render(request,'system_messages.html', {"errors_list": errors_list})
+
+from copy import deepcopy
+def outlier_detection(zipped_list):
+  og=deepcopy(zipped_list)
+  l=sorted(zipped_list)
+  q1=l[int((len(l)+1)//4)]
+  q3=l[int(3*(len(l)+1)//4)]
+  iqr=q3[0]-q1[0]
+  lb=q1[0]-1.5*iqr
+  ub=q3[0]+1.5*iqr
+  r=[]
+  for i in og:
+    if lb<=i[0]<=ub:
+      r.append(0)
     else:
-      to_notify.append(0)
-  return to_notify
+      r.append(1)
+  return r
 
 def updatechart(request):
   '''
@@ -145,24 +164,29 @@ def updatechart(request):
   firebase=pyrebase.initialize_app(config)
   authe = firebase.auth()
   database=firebase.database()
-  sensor1,sensor2,sensor3,sensor4,time, time_json=get_data(request)
-  sensor1_errors=get_indices(zip(sensor1, time))
-  sensor2_errors=get_indices(zip(sensor2, time))
-  sensor3_errors=get_indices(zip(sensor3, time))
-  sensor4_errors=get_indices(zip(sensor4, time))
+  sensor1, sensor2, sensor3, sensor4, time, time_json, errors_list=get_errors(request)
+  sensor1_errors=outlier_detection(zip(sensor1, time))
+  sensor2_errors=outlier_detection(zip(sensor2, time))
+  sensor3_errors=outlier_detection(zip(sensor3, time))
+  sensor4_errors=outlier_detection(zip(sensor4, time))
   result=check(sensor1, sensor2, sensor3, sensor4, time)
   data={
     "sensor1": sensor1,
     "sensor2": sensor2,
     "sensor3": sensor3,
     "sensor4": sensor4,
+    "current_sensor1": round(sensor1[-1],2),
+    "current_sensor2": round(sensor2[-1],2),
+    "current_sensor3": round(sensor3[-1],2),
+    "current_sensor4": round(sensor4[-1],2),
     "time": time_json,
     "sensor1_errors": sensor1_errors,
     "sensor2_errors": sensor2_errors,
     "sensor3_errors": sensor3_errors,
     "sensor4_errors": sensor4_errors,
     "result": result}
-  return JsonResponse(data, safe=False)
+  print(type(time_json))
+  return JsonResponse(data, safe=True)
 
 def check(sensor1, sensor2, sensor3, sensor4, time):
   '''
@@ -180,8 +204,11 @@ def check(sensor1, sensor2, sensor3, sensor4, time):
       c+=1
     if sensor4[i]!=0:
       c+=1
-    res.append((sensor1[i]+sensor2[i]+sensor3[i]+sensor4[i])/c)
-  res=[1 if i>40 else 0 for i in res]  
+    if c==0:
+      res.append(0)
+    else:
+      res.append((sensor1[i]+sensor2[i]+sensor3[i]+sensor4[i])/c)
+  res=[1 if i>40 else 0 for i in res]
   return res
 
 ''' 
@@ -189,28 +216,47 @@ BELOW FUNCTIONS ARE FOR THE INDIVIDUAL SENSOR PAGES.
 '''
 
 def sensor1(request):
-  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time, time_json=get_data(request)
-  to_notify=get_indices(zip(sensor1_data, time))
+  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time,time_json,_=get_errors(request)
+  to_notify=outlier_detection(zip(sensor1_data, time))
   res=check(sensor1_data, sensor2_data, sensor3_data, sensor4_data, time)
+  for i in res:
+    if i==0:
+      alert_user(request)
   return render(request,'sensor1.html', {"sensor1": sensor1_data, "time":time_json, "to_notify": to_notify, "result": res})
+  
 
 def sensor2(request):
-  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time, time_json=get_data(request)
-  to_notify=get_indices(zip(sensor2_data, time))
+  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time,time_json,_=get_errors(request)
+  to_notify=outlier_detection(zip(sensor2_data, time))
   res=check(sensor1_data, sensor2_data, sensor3_data, sensor4_data, time)
+  for i in res:
+    if i==0:
+      alert_user(request)
   return render(request,'sensor2.html', {"sensor2": sensor2_data, "time":time_json, "to_notify": to_notify, "result": res})
 
 def sensor3(request):
-  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time, time_json=get_data(request)
-  to_notify=get_indices(zip(sensor3_data, time))
+  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time,time_json,_=get_errors(request)
+  to_notify=outlier_detection(zip(sensor3_data, time))
   res=check(sensor1_data, sensor2_data, sensor3_data, sensor4_data, time)
+  for i in res:
+    if i==0:
+      alert_user(request)
   return render(request,'sensor3.html', {"sensor3": sensor3_data, "time":time_json, "to_notify": to_notify, "result": res})
 
 def sensor4(request):
-  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time, time_json=get_data(request)
-  to_notify=get_indices(zip(sensor4_data, time))
+  sensor1_data,sensor2_data,sensor3_data,sensor4_data,time,time_json,_=get_errors(request)
+  to_notify=outlier_detection(zip(sensor4_data, time))
   res=check(sensor1_data, sensor2_data, sensor3_data, sensor4_data, time)
+  for i in res:
+    if i==0:
+      alert_user(request)
   return render(request,'sensor4.html', {"sensor4": sensor4_data, "time":time_json, "to_notify": to_notify, "result": res})
+
+def alert_user(request):
+  subject = 'An Outlier has been detected'
+  message = f'Hi {request.user.username}. During the regular check ups, an outlier data point was detected. Please check your dashboard for further info.'
+  email_from = settings.EMAIL_HOST_USER
+  send_mail( subject, message, email_from, [request.user.email])
 
 def placeholder(request):
   return render(request, '404.html')
@@ -228,6 +274,7 @@ class login_view(LoginView):
   form_class = LoginForm
 
 
+
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
@@ -237,4 +284,74 @@ def logout_view(request):
 
 
 def user_info(request):
-  return render(request,'user_info.html', {"username": request.user.username })
+  return render(request,'user_info.html', {"username": request.user.username,"email":request.user.email})
+
+def sharedata(request):
+  subject = f'Data shared by {request.user.username}'
+  message = get_data(request)
+  email_from = request.user.email
+  try:
+    send_mail( subject, message, email_from, [settings.EMAIL_HOST_USER])
+  except:
+    print("Error in emailing")
+  return render(request, 'sharedata.html')
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
+
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'changepassword.html', {
+        'form': form
+    })
+
+
+
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail, BadHeaderError
+from django.http import HttpResponse
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User
+from django.template.loader import render_to_string
+from django.db.models.query_utils import Q
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+def password_reset(request):
+	if request.method == "POST":
+		password_reset_form = PasswordResetForm(request.POST)
+		if password_reset_form.is_valid():
+			data = password_reset_form.cleaned_data['email']
+			associated_users = User.objects.filter(Q(email=data))
+			if associated_users.exists():
+				for user in associated_users:
+					subject = "Password Reset Requested"
+					email_template_name = "main/password/password_reset_email.txt"
+					c = {
+					"email":user.email,
+					'domain':'127.0.0.1:8000',
+					'site_name': 'Website',
+					"uid": urlsafe_base64_encode(force_bytes(user.pk)),
+					"user": user,
+					'token': default_token_generator.make_token(user),
+					'protocol': 'http',
+					}
+					email = render_to_string(email_template_name, c)
+					try:
+						send_mail(subject, email, 'admin@example.com' , [user.email], fail_silently=False)
+					except BadHeaderError:
+						return HttpResponse('Invalid header found.')
+					return redirect ("/password_reset/done/")
+	password_reset_form = PasswordResetForm()
+	return render(request=request, template_name="password/password_reset.html", context={"password_reset_form":password_reset_form})

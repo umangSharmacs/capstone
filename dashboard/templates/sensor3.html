@@ -1,46 +1,47 @@
 <!DOCTYPE html>
-<head><title>Sensor 3 Data</title></head>
+<head><title>Turbidity Sensor Data</title></head>
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="container-fluid">
 
     <!-- Page Heading -->
-    <h1 class="h3 mb-2 text-gray-800">Sensor 3 Data</h1>
+    <h1 class="h3 mb-2 text-gray-800">Turbidity Sensor Data</h1>
     <div class="row">
-      <div class="col-xl-6 lg-6 sm-6">
+      <div class="col-xl-12 lg-12 sm-12">
         <div class="card mb-1">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Sensor 3</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Turbidity Sensor</h6>
             </div>
-              <div class="card-body">
-                  <div class="chart-pie">
-                      <canvas id="sensor3chart" onload="updatet()"></canvas>
+              <div class="card-body" style="width: 100%; overflow-x: auto; overflow-y: hidden">
+                  <div style="width: 3000px; height: 300px">
+                      <canvas id="sensor3chart" height="300" width="0" onload="updatet()"></canvas>
                   </div>
                   <hr>
               </div>
           </div>
         </div>
-          <div class="col-xl-6 ">
-            <div class="card mb-1">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">RESULTS</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-pie">
-                        <canvas id="sensor3resultchart" onload="updatet()"></canvas>
-                    </div>
-                    <hr>
-                </div>
-            </div> 
-        </div>
+          
       </div>
-
+<hr>
       <div class="row">
+        <div class="col-xl-6 ">
+          <div class="card mb-1">
+              <div class="card-header py-3">
+                  <h6 class="m-0 font-weight-bold text-primary">RESULTS</h6>
+              </div>
+              <div class="card-body">
+                  <div class="chart-pie">
+                      <canvas id="sensor3resultchart" onload="updatet()"></canvas>
+                  </div>
+                  <hr>
+              </div>
+          </div> 
+      </div>
         <div class="col-xl-6 lg-6 sm-6">
           <div class="card mb-1">
               <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Sensor 3 Errors</h6>
+                  <h6 class="m-0 font-weight-bold text-primary">Turbidity Sensor Outliers</h6>
               </div>
                 <div class="card-body">
                     <div class="chart-pie">
@@ -57,11 +58,11 @@
 
 
 <script>
-
+const length_limit=75
 function process(data){
-    if (data.length>15){
+    if (data.length>length_limit){
         const n = data.length
-        data=data.slice(n-15,n)
+        data=data.slice(n-length_limit,n)
     }
     return data
 }
@@ -80,24 +81,38 @@ var myChart1 = new Chart(document.getElementById("sensor3chart"), {
     labels:time,
     datasets: [{
         data: sensor3,
-        label: "Sensor 3",
+        label: "Turbidity Sensor",
         borderColor: "#c45850",
         fill: true,
       }],
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+      yAxes: [{
+            type: 'linear',
+            display: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'NTU' ,
+            },
             ticks: {
-                stepSize: 20
+                
+                suggestedmax: 100,
+                suggestedmin: 0,
+                stepSize: 10
             }
-        }
+        }],
+        xAxes: [{
+          display: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'Time' ,
+            },
+        }]
     },
     title: {
       display: true,
-      text: 'Sensor 3 Data'
+      text: 'Turbidity Sensor Data'
     }
   }
 });
@@ -107,7 +122,7 @@ var myChart2 = new Chart(document.getElementById("sensor3resultchart"), {
     labels: time,
     datasets: [{
         data: result,
-        label: "Sensor 3",
+        label: "Suitable",
         borderColor: "#c45850",
         fill: true,
         tension: 0
@@ -115,17 +130,26 @@ var myChart2 = new Chart(document.getElementById("sensor3resultchart"), {
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+      yAxes: [{
+            type: 'linear',
             ticks: {
-                stepSize: 20
+                beginAtZero: true,
+                max: 1,
+                suggestedmin: 0,
+                stepSize: 1
             }
-        }
+        }],
+        xAxes: [{
+          display: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'Time' ,
+            },
+        }]
     },
     title: {
       display: true,
-      text: 'RESULT'
+      text: 'RESULT: 1 Represents suitable water'
     }
   }
 });
@@ -135,7 +159,7 @@ var myChart3 = new Chart(document.getElementById("sensor3errorchart"), {
     labels: time,
     datasets: [{
         data: error,
-        label: "Sensor 3",
+        label: "Outlier",
         borderColor: "#c45850",
         fill: true,
         tension: 0
@@ -143,17 +167,26 @@ var myChart3 = new Chart(document.getElementById("sensor3errorchart"), {
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+      yAxes: [{
+            type: 'linear',
             ticks: {
-                stepSize: 20
+                beginAtZero: true,
+                max: 1,
+                suggestedmin: 0,
+                stepSize: 1
             }
-        }
+        }],
+        xAxes: [{
+          display: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'Time' ,
+            },
+        }]
     },
     title: {
       display: true,
-      text: 'RESULT'
+      text: 'Outliers: 1 represents an outlier'
     }
   }
 });
@@ -164,14 +197,17 @@ setInterval(function updatet(){
          success: function(test){
              console.log("hello")
              var sensor3=process(test['sensor3'])
-             var time=process(test['time'])
+             var time=process(test['time'].split(","))
              var result=process(test['result'])
              var error=process(test["sensor3_errors"])
              myChart1.data.datasets[0].data = sensor3;
+             myChart1.data.labels=time;
              myChart1.update();
              myChart2.data.datasets[0].data = result;
+             myChart2.data.labels=time;
              myChart2.update();
              myChart3.data.datasets[0].data = error;
+             myChart3.data.labels=time;
              myChart3.update();
 
          },

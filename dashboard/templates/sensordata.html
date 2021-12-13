@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<head><title>Sensor Data</title></head>
+<head>
+    <title>Sensor Data</title>
+</head>
 {% extends 'base.html' %}
 
 {% block content %}
@@ -12,27 +14,103 @@
       
         <!-- Content Row -->
         <div class="row">
+
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Temperature</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="tempid">{{current_sensor1}} &#8451;</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-temperature-high fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings (Monthly) Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">pH</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="phid">{{current_sensor2}} pH</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-vial fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings (Monthly) Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Turbidity</div>
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col-auto">
+                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="turbid">{{current_sensor3}} NTU</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="far fa-dot-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Requests Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">TDS</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="tdsid" onload="updatet()">{{current_sensor4}} PPM</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-atom fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
           <!-- Donut Chart -->
           <div class="col-xl-6 col-lg-7">
               <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div class="card-header py-3">
-                      <h6 class="m-0 font-weight-bold text-primary">Sensor 1</h6>
+                      <h6 class="m-0 font-weight-bold text-primary">Temperature Sensor</h6>
                   </div>
                   <!-- Card Body -->
+                  
                   <div class="card-body">
                       <div class="chart-pie pt-4">
                           <canvas id="sensor1chart" onload="updatet()"></canvas>
                       </div>
                       <hr>
                   </div>
+
               </div>
           </div>
           <div class="col-xl-6 col-lg-7">
             <div class="card shadow mb-4">
                 <!-- Card Header - Dropdown -->
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Sensor 2</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">pH Sensor</h6>
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
@@ -51,7 +129,7 @@
                 <div class="card shadow mb-4">
                     <!-- Card Header - Dropdown -->
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Sensor 3</h6>
+                        <h6 class="m-0 font-weight-bold text-primary">Turbidity Sensor</h6>
                     </div>
                     <!-- Card Body -->
                     <div class="card-body">
@@ -67,7 +145,7 @@
               <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div class="card-header py-3">
-                      <h6 class="m-0 font-weight-bold text-primary">Sensor 4</h6>
+                      <h6 class="m-0 font-weight-bold text-primary">TDS Sensor</h6>
                   </div>
                   <!-- Card Body -->
                   <div class="card-body">
@@ -103,120 +181,172 @@ var sensor1={{sensor1}}
 var sensor2={{sensor2}}
 var sensor3={{sensor3}}
 var sensor4={{sensor4}}
-// var time={{time}}
+var time={{time | safe}}
 
 sensor1=process(sensor1)
 sensor2=process(sensor2)
 sensor3=process(sensor3)
 sensor4=process(sensor4)
-// time=process(time)
-// console.log(time)
+time=process(time)
+console.log(time)
 
 var myChart1 = new Chart(document.getElementById("sensor1chart"), {
   type: 'line',
   data: {
-    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    labels: time,
     datasets: [{
         data: sensor1,
-        label: "Sensor 1",
-        borderColor: "#c45850",
+        label: "Temperature Sensor",
+        borderColor: "#4e73df",
         fill: true
       }],
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
-            ticks: {
-                stepSize: 20
+        yAxes: [{
+            type: 'linear',
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Temperature(Celsius)',
+        },
+        ticks: {
+                beginAtZero: true,
+                max: 100,
+                suggestedmin: 0,
+                stepSize: 20,
+                
             }
+      }],
+      xAxes: [{
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Time',
         }
+      }]
     },
     title: {
       display: true,
-      text: 'Sensor 1 Data'
+      text: 'Temperature Sensor Data'
     }
   }
 });
 var myChart2 = new Chart(document.getElementById("sensor2chart"), {
   type: 'line',
   data: {
-    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    labels: time,
     datasets: [{
         data: sensor2,
-        label: "Sensor 2",
-        borderColor: "#c45850",
+        label: "pH Sensor",
+        borderColor: "#1cc88a",
         fill: true
       }],
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+        yAxes: [{
+            type: 'linear',
+            display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'pH',
+        },
             ticks: {
-                stepSize: 20
+                beginAtZero: true,
+                max: 14,
+                suggestedmin: 0,
+                stepSize: 1
             }
+        }],
+        xAxes: [{
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Time',
         }
+      }]
     },
     title: {
       display: true,
-      text: 'Sensor 2 Data'
+      text: 'pH Sensor Data'
     }
   }
 });
 var myChart3 = new Chart(document.getElementById("sensor3chart"), {
   type: 'line',
   data: {
-    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    labels: time,
     datasets: [{
         data: sensor3,
-        label: "Sensor 3",
-        borderColor: "#c45850",
+        label: "Turbidity Sensor",
+        borderColor: "#36b9cc",
         fill: true
       }],
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+        yAxes: [{
+            type: 'linear',
+            display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'NTU',
+        },
             ticks: {
-                stepSize: 20
+                suggestedmin: 0,
             }
+        }],
+        xAxes: [{
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Time',
         }
+      }]
     },
     title: {
       display: true,
-      text: 'Sensor 3 Data'
+      text: 'Turbidity Sensor Data'
     }
   }
 });
 var myChart4 = new Chart(document.getElementById("sensor4chart"), {
   type: 'line',
   data: {
-    labels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    labels: time,
     datasets: [{
         data: sensor4,
-        label: "Sensor 4",
-        borderColor: "#c45850",
+        label: "TDS Sensor",
+        borderColor: "#f6c23e",
         fill: true
       }],
   },
   options: {
     scales: {
-        y: {
-            max: 100,
-            min: 0,
+        yAxes: [{
+            type: 'linear',
+            display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'PPM',
+        },
             ticks: {
-                stepSize: 20
+                suggestedmin: 0,
             }
-        }
+        }],
+        xAxes: [{
+            display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Time',
+        },
+
+        }]
     },
     title: {
       display: true,
-      text: 'Sensor 4 Data'
+      text: 'TDS Sensor Data'
     }
   }
 });
@@ -231,15 +361,29 @@ setInterval(function updatet(){
              var sensor2=process(test['sensor2'])
              var sensor3=process(test['sensor3'])
              var sensor4=process(test['sensor4'])
-             var time=process(test['time'])
-             
+             var time=process(test['time'].split(","))
+             var current_sensor1=test["current_sensor1"]
+             var current_sensor2=test["current_sensor2"]
+             var current_sensor3=test["current_sensor3"]
+             var current_sensor4=test["current_sensor4"]
+             document.getElementById("tempid").innerHTML=current_sensor1+ " \xB0C";
+             document.getElementById("phid").innerHTML=current_sensor2+" pH";
+             document.getElementById("turbid").innerHTML=current_sensor3+" NTU";
+             document.getElementById("tdsid").innerHTML=current_sensor4+" PPM";
              myChart1.data.datasets[0].data = sensor1;
+             myChart1.data.labels=time;
              myChart1.update();
+
              myChart2.data.datasets[0].data = sensor2;
+             myChart2.data.labels=time;
              myChart2.update();
+
              myChart3.data.datasets[0].data = sensor3;
+             myChart3.data.labels=time;
              myChart3.update();
+
              myChart4.data.datasets[0].data = sensor4;
+             myChart4.data.labels=time;
              myChart4.update();
          },
      });

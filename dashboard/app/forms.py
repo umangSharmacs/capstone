@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 
 
 class CustomUserForm(UserCreationForm):
+    email = forms.EmailField(required=True)
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2')
+        fields = ('username','email', 'password1', 'password2')
         widgets = {
             'Username': forms.TextInput(attrs={'class': 'form-control', 'style': 'width: 300px;', 'placeholder':'Register username'}),
              'password': forms.TextInput(attrs={'class': 'form-control', 'style': 'width: 300px;', 'placeholder':'Create Password'}),   
